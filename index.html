@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Velha Offline - Aprimorado</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            transition: background-color 0.5s ease;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            border: 4px solid transparent;
+            transition: border-color 0.5s ease;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .player-turn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .player-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+
+        .score {
+            color: #28a745;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .cell:hover {
+            background-color: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .cell.x {
+            color: #ff4757;
+        }
+
+        .cell.o {
+            color: #2ed573;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #reset-btn {
+            background-color: #2575fc;
+            color: white;
+        }
+
+        #reset-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        #new-game-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        #new-game-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .win-message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .draw-message {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .instructions {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .instructions h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .instructions p {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .turn-info {
+            background-color: #f8f9fa;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .cell {
+                font-size: 2.5rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="game-container">
+        <h1>Jogo da Velha</h1>
+        <p class="subtitle">Dois jogadores - Alternância justa!</p>
+        
+        <div class="game-info">
+            <div class="player-turn">
+                Turno: 
+                <span id="current-player">X</span>
+                <div class="player-indicator" id="player-indicator"></div>
+            </div>
+            <div class="score">Placar: <span id="score">X: 0 | O: 0</span></div>
+        </div>
+        
+        <div class="game-board" id="board">
+            <!-- As células serão criadas via JavaScript -->
+        </div>
+        
+        <div class="turn-info">
+            <span>Jogador da vez: </span>
+            <span id="turn-player-name">X</span>
+            <div class="player-indicator" id="turn-indicator"></div>
+        </div>
+        
+        <div class="controls">
+            <button id="reset-btn">Reiniciar Partida</button>
+            <button id="new-game-btn">Novo Jogo</button>
+        </div>
+        
+        <div class="message" id="message"></div>
+    </div>
+    
+    <div class="instructions">
+        <h3>Como jogar:</h3>
+        <p>1. Os jogadores alternam turnos, colocando X e O nas células vazias.</p>
+        <p>2. O jogador que inicia alterna a cada partida para ser mais justo.</p>
+        <p>3. O objetivo é conseguir três símbolos iguais em linha (horizontal, vertical ou diagonal).</p>
+        <p>4. A cor de fundo e a borda mudam conforme o jogador da vez.</p>
+        <p>5. Clique em "Reiniciar Partida" para começar uma nova partida mantendo o placar.</p>
+        <p>6. Clique em "Novo Jogo" para zerar o placar e começar totalmente do zero.</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Elementos do DOM
+            const boardElement = document.getElementById('board');
+            const currentPlayerElement = document.getElementById('current-player');
+            const turnPlayerNameElement = document.getElementById('turn-player-name');
+            const scoreElement = document.getElementById('score');
+            const resetButton = document.getElementById('reset-btn');
+            const newGameButton = document.getElementById('new-game-btn');
+            const messageElement = document.getElementById('message');
+            const gameContainer = document.getElementById('game-container');
+            const playerIndicator = document.getElementById('player-indicator');
+            const turnIndicator = document.getElementById('turn-indicator');
+            const bodyElement = document.body;
+            
+            // Estado do jogo
+            let gameState = ['', '', '', '', '', '', '', '', ''];
+            let currentPlayer = 'X';
+            let gameActive = true;
+            let score = { X: 0, O: 0 };
+            let lastStarter = 'O'; // Começa com 'O' para que a primeira partida seja 'X'
+            
+            // Cores para cada jogador
+            const playerColors = {
+                X: { 
+                    bg: '#fff0f3', 
+                    border: '#ff4757',
+                    light: '#ffcccc',
+                    indicator: '#ff4757'
+                },
+                O: { 
+                    bg: '#f0fff4', 
+                    border: '#2ed573',
+                    light: '#ccffdd',
+                    indicator: '#2ed573'
+                }
+            };
+            
+            // Combinações vencedoras
+            const winningConditions = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Linhas
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Colunas
+                [0, 4, 8], [2, 4, 6]             // Diagonais
+            ];
+            
+            // Mensagens do jogo
+            const winMessage = () => `Jogador ${currentPlayer} venceu!`;
+            const drawMessage = "Empate!";
+            
+            // Inicializar o tabuleiro
+            function initializeBoard() {
+                boardElement.innerHTML = '';
+                
+                for (let i = 0; i < 9; i++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.setAttribute('data-index', i);
+                    cell.addEventListener('click', () => handleCellClick(i));
+                    boardElement.appendChild(cell);
+                }
+                
+                updateGameInfo();
+                updateVisualIndicators();
+            }
+            
+            // Determinar quem começa a próxima partida
+            function determineStarter() {
+                // Alterna quem começa a partida
+                lastStarter = lastStarter === 'X' ? 'O' : 'X';
+                currentPlayer = lastStarter;
+                
+                // Atualiza a interface para refletir o jogador inicial
+                updateVisualIndicators();
+            }
+            
+            // Atualizar informações do jogo
+            function updateGameInfo() {
+                currentPlayerElement.textContent = currentPlayer;
+                turnPlayerNameElement.textContent = currentPlayer;
+                scoreElement.textContent = `X: ${score.X} | O: ${score.O}`;
+                
+                // Atualizar indicadores de jogador
+                playerIndicator.style.backgroundColor = playerColors[currentPlayer].indicator;
+                turnIndicator.style.backgroundColor = playerColors[currentPlayer].indicator;
+            }
+            
+            // Atualizar indicadores visuais
+            function updateVisualIndicators() {
+                // Mudar cor de fundo do body baseado no jogador atual
+                bodyElement.style.backgroundColor = playerColors[currentPlayer].light;
+                
+                // Mudar borda do container do jogo
+                gameContainer.style.borderColor = playerColors[currentPlayer].border;
+                
+                // Atualizar cores dos botões
+                resetButton.style.backgroundColor = playerColors[currentPlayer].border;
+                newGameButton.style.backgroundColor = playerColors[currentPlayer === 'X' ? 'O' : 'X'].border;
+                
+                updateGameInfo();
+            }
+            
+            // Lidar com clique na célula
+            function handleCellClick(index) {
+                // Verificar se a célula está vazia e se o jogo está ativo
+                if (gameState[index] !== '' || !gameActive) {
+                    return;
+                }
+                
+                // Atualizar estado do jogo e interface
+                gameState[index] = currentPlayer;
+                const cell = document.querySelector(`.cell[data-index="${index}"]`);
+                cell.textContent = currentPlayer;
+                cell.classList.add(currentPlayer.toLowerCase());
+                cell.style.borderColor = playerColors[currentPlayer].border;
+                
+                // Verificar se há um vencedor
+                if (checkWin()) {
+                    gameActive = false;
+                    score[currentPlayer]++;
+                    showMessage(winMessage(), 'win-message');
+                    updateGameInfo();
+                    return;
+                }
+                
+                // Verificar se há empate
+                if (checkDraw()) {
+                    gameActive = false;
+                    showMessage(drawMessage, 'draw-message');
+                    return;
+                }
+                
+                // Mudar jogador
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                updateVisualIndicators();
+            }
+            
+            // Verificar se há um vencedor
+            function checkWin() {
+                for (const condition of winningConditions) {
+                    const [a, b, c] = condition;
+                    
+                    if (
+                        gameState[a] !== '' &&
+                        gameState[a] === gameState[b] &&
+                        gameState[a] === gameState[c]
+                    ) {
+                        // Destacar células vencedoras
+                        highlightWinningCells(condition);
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            // Destacar células vencedoras
+            function highlightWinningCells(cells) {
+                cells.forEach(index => {
+                    const cell = document.querySelector(`.cell[data-index="${index}"]`);
+                    const player = gameState[index];
+                    cell.style.backgroundColor = player === 'X' ? '#ffebee' : '#e8f5e9';
+                    cell.style.transform = 'scale(1.05)';
+                });
+            }
+            
+            // Verificar se há empate
+            function checkDraw() {
+                return !gameState.includes('');
+            }
+            
+            // Mostrar mensagem
+            function showMessage(message, className) {
+                messageElement.textContent = message;
+                messageElement.className = `message ${className}`;
+                messageElement.style.display = 'block';
+            }
+            
+            // Reiniciar partida
+            function resetGame() {
+                gameState = ['', '', '', '', '', '', '', '', ''];
+                gameActive = true;
+                determineStarter(); // Alterna quem começa
+                messageElement.style.display = 'none';
+                
+                // Limpar células
+                document.querySelectorAll('.cell').forEach(cell => {
+                    cell.textContent = '';
+                    cell.classList.remove('x', 'o');
+                    cell.style.backgroundColor = '';
+                    cell.style.transform = '';
+                    cell.style.borderColor = '';
+                });
+                
+                updateVisualIndicators();
+            }
+            
+            // Novo jogo (zerar placar também)
+            function newGame() {
+                score = { X: 0, O: 0 };
+                lastStarter = 'O'; // Resetar para que a primeira partida seja 'X'
+                resetGame();
+            }
+            
+            // Adicionar event listeners aos botões
+            resetButton.addEventListener('click', resetGame);
+            newGameButton.addEventListener('click', newGame);
+            
+            // Inicializar o jogo
+            initializeBoard();
+        });
+    </script>
+</body>
+</html>
