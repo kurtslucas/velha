@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo da Velha Offline - Aprimorado</title>
+    <title>Jogo da Velha</title>
     <style>
         * {
             margin: 0;
@@ -20,6 +20,7 @@
             min-height: 100vh;
             padding: 20px;
             transition: background-color 0.5s ease;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
         }
 
         .container {
@@ -127,21 +128,30 @@
             transition: all 0.3s ease;
         }
 
-        #reset-btn {
+        #new-match-btn {
             background-color: #2575fc;
             color: white;
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
-        #reset-btn:hover {
+        #new-match-btn:enabled {
+            opacity: 1;
+            cursor: pointer;
+        }
+
+        #new-match-btn:enabled:hover {
+            background-color: #1a68e8;
             transform: translateY(-2px);
         }
 
-        #new-game-btn {
-            background-color: #28a745;
+        #reset-score-btn {
+            background-color: #6c757d;
             color: white;
         }
 
-        #new-game-btn:hover {
+        #reset-score-btn:hover {
+            background-color: #5a6268;
             transform: translateY(-2px);
         }
 
@@ -164,25 +174,6 @@
             background-color: #fff3cd;
             color: #856404;
             border: 1px solid #ffeaa7;
-        }
-
-        .instructions {
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 30px;
-            width: 100%;
-            max-width: 500px;
-        }
-
-        .instructions h3 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .instructions p {
-            color: #666;
-            line-height: 1.5;
         }
 
         .turn-info {
@@ -241,21 +232,11 @@
         </div>
         
         <div class="controls">
-            <button id="reset-btn">Reiniciar Partida</button>
-            <button id="new-game-btn">Novo Jogo</button>
+            <button id="new-match-btn" disabled>Nova partida</button>
+            <button id="reset-score-btn">Zerar placar</button>
         </div>
         
         <div class="message" id="message"></div>
-    </div>
-    
-    <div class="instructions">
-        <h3>Como jogar:</h3>
-        <p>1. Os jogadores alternam turnos, colocando X e O nas células vazias.</p>
-        <p>2. O jogador que inicia alterna a cada partida para ser mais justo.</p>
-        <p>3. O objetivo é conseguir três símbolos iguais em linha (horizontal, vertical ou diagonal).</p>
-        <p>4. A cor de fundo e a borda mudam conforme o jogador da vez.</p>
-        <p>5. Clique em "Reiniciar Partida" para começar uma nova partida mantendo o placar.</p>
-        <p>6. Clique em "Novo Jogo" para zerar o placar e começar totalmente do zero.</p>
     </div>
 
     <script>
@@ -265,8 +246,8 @@
             const currentPlayerElement = document.getElementById('current-player');
             const turnPlayerNameElement = document.getElementById('turn-player-name');
             const scoreElement = document.getElementById('score');
-            const resetButton = document.getElementById('reset-btn');
-            const newGameButton = document.getElementById('new-game-btn');
+            const newMatchButton = document.getElementById('new-match-btn');
+            const resetScoreButton = document.getElementById('reset-score-btn');
             const messageElement = document.getElementById('message');
             const gameContainer = document.getElementById('game-container');
             const playerIndicator = document.getElementById('player-indicator');
@@ -352,11 +333,21 @@
                 // Mudar borda do container do jogo
                 gameContainer.style.borderColor = playerColors[currentPlayer].border;
                 
-                // Atualizar cores dos botões
-                resetButton.style.backgroundColor = playerColors[currentPlayer].border;
-                newGameButton.style.backgroundColor = playerColors[currentPlayer === 'X' ? 'O' : 'X'].border;
-                
                 updateGameInfo();
+            }
+            
+            // Ativar botão de nova partida
+            function enableNewMatchButton() {
+                newMatchButton.disabled = false;
+                newMatchButton.style.opacity = '1';
+                newMatchButton.style.cursor = 'pointer';
+            }
+            
+            // Desativar botão de nova partida
+            function disableNewMatchButton() {
+                newMatchButton.disabled = true;
+                newMatchButton.style.opacity = '0.6';
+                newMatchButton.style.cursor = 'not-allowed';
             }
             
             // Lidar com clique na célula
@@ -379,6 +370,7 @@
                     score[currentPlayer]++;
                     showMessage(winMessage(), 'win-message');
                     updateGameInfo();
+                    enableNewMatchButton(); // Habilitar botão quando partida termina
                     return;
                 }
                 
@@ -386,6 +378,7 @@
                 if (checkDraw()) {
                     gameActive = false;
                     showMessage(drawMessage, 'draw-message');
+                    enableNewMatchButton(); // Habilitar botão quando partida termina
                     return;
                 }
                 
@@ -434,8 +427,8 @@
                 messageElement.style.display = 'block';
             }
             
-            // Reiniciar partida
-            function resetGame() {
+            // Nova partida
+            function newMatch() {
                 gameState = ['', '', '', '', '', '', '', '', ''];
                 gameActive = true;
                 determineStarter(); // Alterna quem começa
@@ -451,21 +444,23 @@
                 });
                 
                 updateVisualIndicators();
+                disableNewMatchButton(); // Desabilitar botão após iniciar nova partida
             }
             
-            // Novo jogo (zerar placar também)
-            function newGame() {
+            // Zerar placar (reiniciar tudo)
+            function resetScore() {
                 score = { X: 0, O: 0 };
                 lastStarter = 'O'; // Resetar para que a primeira partida seja 'X'
-                resetGame();
+                newMatch(); // Começar uma nova partida
             }
             
             // Adicionar event listeners aos botões
-            resetButton.addEventListener('click', resetGame);
-            newGameButton.addEventListener('click', newGame);
+            newMatchButton.addEventListener('click', newMatch);
+            resetScoreButton.addEventListener('click', resetScore);
             
             // Inicializar o jogo
             initializeBoard();
+            disableNewMatchButton(); // Começar com botão desabilitado
         });
     </script>
 </body>
